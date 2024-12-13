@@ -1,8 +1,9 @@
 <?php
-$servername = "localhost";
-$username = "globalqa_globalqa_userdb";
-$password = "2jRsEEHVSULLpXmpSr2J";
-$dbname = "globalqa_globalqa_userdb";
+// Database connection details
+$servername = 'YOUR_SERVERNAME';       // Replace with your database server name
+$username = 'YOUR_DATABASE_USERNAME';   // Replace with your database username
+$password = 'YOUR_DATABASE_PASSWORD';   // Replace with your database password
+$dbname = 'YOUR_DATABASE_NAME';         // Replace with your database name
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);

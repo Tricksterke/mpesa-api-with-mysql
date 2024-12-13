@@ -19,15 +19,16 @@ A robust integration of the M-Pesa API with MySQL, designed to facilitate seamle
   - Callback URL
 
 ## Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/mpesa-mysql-api.git
-   ```
+1. Download the code:
+   - Clone the repository using Git:
+     ```bash
+     git clone https://github.com/Tricksterke/mpesa-api-with-mysql.git
+     ```
+   - Alternatively, download the ZIP file from the repository and extract it to your preferred location.
 
-2. Navigate to the project directory:
-   ```bash
-   cd mpesa-mysql-api
-   ```
+2. Upload the code to your PHP environment:
+   - Copy the extracted files or cloned repository into your PHP server environment (e.g., XAMPP, WAMP, or a live server).
+   - Ensure your PHP environment has access to MySQL and is configured to execute the project.
 
 3. Create the `payments` table in your MySQL database:
    ```sql

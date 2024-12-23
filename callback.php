@@ -20,9 +20,8 @@ if (!empty($data) && isset($data['Body']['stkCallback']['CallbackMetadata']['Ite
 
     $amount = $callbackData[0]['Value'] ?? null;                     // Amount
     $receiptNumber = $callbackData[1]['Value'] ?? null;              // Mpesa Receipt Number
-    $phoneNumber = $callbackData[3]['Value'] ?? null;                // Phone Number
-    $transactionDate = $callbackData[4]['Value'] ?? null;            // Transaction Date
-
+    $phoneNumber = $callbackData[4]['Value'] ?? null;                // Phone Number
+    
     // Insert into the payments table
     $stmt = $conn->prepare("INSERT INTO payments (amount, mpesa_receipt_number, phone_number, transaction_date) VALUES (?, ?, ?, ?)");
     $stmt->bind_param("ssss", $amount, $receiptNumber, $phoneNumber, $transactionDate);

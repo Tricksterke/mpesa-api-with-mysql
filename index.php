@@ -218,7 +218,7 @@ $callbackUrl = 'YOUR_CALLBACK_URL';       // Replace with your callback URL
           redirectSection.removeClass('hidden'); // Show the redirect section
         }
         $('#redirect-link').click(function() {
-          window.location.href = 'maincheck.php';
+          window.location.href = 'paymentstatus.php';
         });
       });
     </script>

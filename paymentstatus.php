@@ -28,10 +28,10 @@
 
             <?php
             // Database connection
-            $servername = "localhost";
-            $username = "globalqa_globalqa_userdb";
-            $password = "2jRsEEHVSULLpXmpSr2J";
-            $dbname = "globalqa_globalqa_userdb";
+            $servername = "";
+            $username = "";
+            $password = "";
+            $dbname = "";
 
             // Create database connection
             $conn = new mysqli($servername, $username, $password, $dbname);

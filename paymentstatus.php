@@ -1,122 +1,88 @@
-<?php
-// Database connection details
-$servername = 'YOUR_SERVERNAME';       // Replace with your database server name
-$username = 'YOUR_DATABASE_USERNAME';   // Replace with your database username
-$password = 'YOUR_DATABASE_PASSWORD';   // Replace with your database password
-$dbname = 'YOUR_DATABASE_NAME';         // Replace with your database name
-
-// Create database connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
-// Check payment status via AJAX
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['check_payment'])) {
-    $phone = $_GET['phone'];
-
-    // Format phone number to start with 254
-    if (!preg_match('/^254/', $phone)) {
-        $phone = '254' . ltrim($phone, '0');
-    }
-
-    // Query to fetch the latest payment within the last minute
-    $stmt = $conn->prepare('SELECT amount, mpesa_receipt_number FROM payments WHERE phone_number = ? AND created_at >= NOW() - INTERVAL 1 MINUTE ORDER BY created_at DESC LIMIT 1');
-    $stmt->bind_param('s', $phone);
-    $stmt->execute();
-    $stmt->bind_result($amount, $receiptNumber);
-    $stmt->fetch();
-    $stmt->close();
-    $conn->close();
-
-    if ($amount && $receiptNumber) {
-        echo json_encode(['success' => true, 'amount' => $amount, 'receipt' => $receiptNumber]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'No recent payment found']);
-    }
-    exit;
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Check Payment Status</title>
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <title>Check Recent Transactions</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-        .notification {
-            display: none;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
+        body {
+            background-color: #f8f9fa;
         }
-        .success {
-            background-color: #28a745;
-            color: white;
-        }
-        .error {
-            background-color: #dc3545;
-            color: white;
+        .table th, .table td {
+            border-color: #dee2e6 !important;
         }
     </style>
 </head>
-<body>
-    <h1>Check Payment Status</h1>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="container mx-auto p-6">
+        <div class="max-w-lg mx-auto bg-white shadow-lg rounded-lg p-8">
+            <h1 class="text-2xl font-bold mb-6 text-center">Check Recent Transactions</h1>
+            <form method="post" action="">
+                <div class="mb-4">
+                    <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                    <input type="text" id="phone" name="phone" class="mt-1 p-3 block w-full border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg">Check Transactions</button>
+            </form>
 
-    <form id="checkPaymentForm">
-        <label for="phone">Phone Number:</label>
-        <input type="text" id="phone" name="phone" placeholder="Enter phone number" required>
-        <button type="submit">Check Payment</button>
-    </form>
+            <?php
+            // Database connection
+            $servername = "localhost";
+            $username = "globalqa_globalqa_userdb";
+            $password = "2jRsEEHVSULLpXmpSr2J";
+            $dbname = "globalqa_globalqa_userdb";
 
-    <div id="notifications">
-        <div id="notification-success" class="notification success hidden">Payment found!</div>
-        <div id="notification-error" class="notification error hidden">An error occurred.</div>
-    </div>
+            // Create database connection
+            $conn = new mysqli($servername, $username, $password, $dbname);
+            if ($conn->connect_error) {
+                die("Connection failed: " . $conn->connect_error);
+            }
 
-    <div id="payment-details" class="hidden">
-        <p><strong>Amount:</strong> <span id="payment-amount"></span></p>
-        <p><strong>Receipt Number:</strong> <span id="mpesa-receipt-number"></span></p>
-    </div>
+            // Check if the form is submitted
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['phone'])) {
+                $phone_number = $conn->real_escape_string($_POST['phone']);
+                $current_time = date('Y-m-d H:i:s');
+                $time_limit = date('Y-m-d H:i:s', strtotime('-5 minutes'));
 
-    <script>
-        function showNotification(type, message) {
-            const notification = type === 'success' ? $('#notification-success') : $('#notification-error');
-            notification.text(message).fadeIn(400);
+                // Query for recent transactions
+                $sql = "SELECT id, amount, mpesa_receipt_number, phone_number, created_at 
+                        FROM payments 
+                        WHERE phone_number = '$phone_number' 
+                        AND created_at >= '$time_limit' 
+                        ORDER BY created_at ASC";
+                
+                $result = $conn->query($sql);
 
-            setTimeout(() => {
-                notification.fadeOut(400);
-            }, 3000);
-        }
-
-        $('#checkPaymentForm').submit(function(e) {
-            e.preventDefault();
-
-            const phone = $('#phone').val();
-
-            $.ajax({
-                url: '',
-                type: 'GET',
-                data: { check_payment: true, phone },
-                success: function(response) {
-                    const res = JSON.parse(response);
-                    if (res.success) {
-                        $('#payment-details').removeClass('hidden');
-                        $('#payment-amount').text(res.amount);
-                        $('#mpesa-receipt-number').text(res.receipt);
-                        showNotification('success', 'Payment found.');
-                    } else {
-                        $('#payment-details').addClass('hidden');
-                        showNotification('error', res.message);
+                if ($result->num_rows > 0) {
+                    echo "<table class='table-auto border-collapse border border-gray-400 w-full mt-6'>";
+                    echo "<thead><tr class='bg-gray-100'>";
+                    echo "<th class='border border-gray-400 px-4 py-2'>ID</th>";
+                    echo "<th class='border border-gray-400 px-4 py-2'>Amount</th>";
+                    echo "<th class='border border-gray-400 px-4 py-2'>Mpesa Receipt Number</th>";
+                    echo "<th class='border border-gray-400 px-4 py-2'>Phone Number</th>";
+                    echo "<th class='border border-gray-400 px-4 py-2'>Created At</th>";
+                    echo "</tr></thead>";
+                    echo "<tbody>";
+                    while ($row = $result->fetch_assoc()) {
+                        echo "<tr>";
+                        echo "<td class='border border-gray-400 px-4 py-2'>" . $row['id'] . "</td>";
+                        echo "<td class='border border-gray-400 px-4 py-2'>" . $row['amount'] . "</td>";
+                        echo "<td class='border border-gray-400 px-4 py-2'>" . $row['mpesa_receipt_number'] . "</td>";
+                        echo "<td class='border border-gray-400 px-4 py-2'>" . $row['phone_number'] . "</td>";
+                        echo "<td class='border border-gray-400 px-4 py-2'>" . $row['created_at'] . "</td>";
+                        echo "</tr>";
                     }
-                },
-                error: function() {
-                    showNotification('error', 'An error occurred while checking payment.');
+                    echo "</tbody>";
+                    echo "</table>";
+                } else {
+                    echo "<p class='mt-4 text-gray-700 text-center'>No recent transactions found for this phone number.</p>";
                 }
-            });
-        });
-    </script>
+
+                $conn->close();
+            }
+            ?>
+        </div>
+    </div>
 </body>
 </html>
